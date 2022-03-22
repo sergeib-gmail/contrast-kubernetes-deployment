@@ -29,7 +29,7 @@ resources:
   - deployment.yaml
 ```
 
-In the `overlay/contrast/kustomization.yaml` example file, we are doing the following:
+In the `overlays/contrast-enabled/kustomization.yaml` example file, we are doing the following:
 * Patching in modifications from the `contrast-java-agent.yaml`
 * Generating a Kubernetes Secret object from the `contrast_security.yaml` file.
 ```yaml
@@ -51,22 +51,23 @@ secretGenerator:
 ## Building Images
 You first need to build the images locally, as these are not currently deployed to an image repository. The `docker` folder contains the image manifests. The following command will build the `contrast/webgoat` application image and the `contrast/java-agent` agent image.
 ```bash
-./docker/build_images.sh
+cd docker
+./build_images.sh
 ```
 
 ## Download the `contrast_security.yaml` file
-After those images are built, you will need to make sure you download a valid `contrast_security.yaml` file into the `overlays/contrast` folder. This will be used when generating a Kubernetes Secret using the Kustomize `secretGenerator`. There are two other side benefits of using Kustomize here:
+After those images are built, you will need to make sure you download a valid `contrast_security.yaml` file into the `overlays/contrast-enabled` folder. This will be used when generating a Kubernetes Secret using the Kustomize `secretGenerator`. There are two other side benefits of using Kustomize here:
 1. Kustomize will generate a unique hash when creating the secret. If the `contrast_security.yaml` configuration is modified the hash will change and the Deployment will use the new configuration.
 1. You don't have to create a separate Secret object definition, as this is done during `apply`. Without Kustomize you would need to copy the `contrast_security.yaml` config to a Secret object, meaning you would have to manage the config in two places.
 
 ## Deploy using Kustomize
 Running the following command will `apply` using Kustomize, patching in the modifications made within the `contrast-java-agent.yaml` file and generating the secret from `contrast_security.yaml`.
 ```bash
-kubectl apply -k overlays/contrast
+kubectl apply -k overlays/contrast-enabled
 ```
 
 ## Delete Deployment
 After you are finished, you can run the following command to destroy the created resources:
 ```bash
-kubectl delete -k overlays/contrast
+kubectl delete -k overlays/contrast-enabled
 ```
